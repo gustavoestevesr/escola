@@ -2,13 +2,12 @@ package com.example.escola.view.controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.escola.service.AlunoService;
 import com.example.escola.shared.AlunoDto;
+import com.example.escola.view.model.AlunoResponse;
 
 import jakarta.validation.Valid;
 
@@ -28,12 +28,27 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/alunos")
 @CrossOrigin
 public class AlunoController {
-    @Autowired
-    AlunoService servico;
+    
+    private AlunoService servico;
+
+    public AlunoController(AlunoService servico){
+        this.servico = servico;
+    }
+
+    ModelMapper mapper = new ModelMapper();
 
     @GetMapping
-    public ResponseEntity<List<AlunoDto>> obterAlunos() {
-      return new ResponseEntity<>(servico.obterTodos(), HttpStatus.ACCEPTED); 
+    public ResponseEntity<List<AlunoResponse>> obterAlunos() {
+        List<AlunoDto> alunosDto = servico.obterTodos();
+        List<AlunoResponse> alunosResponse = alunosDto.stream()
+        .map(a -> mapper.map(a, AlunoResponse.class))
+        .collect(Collectors.toList());
+
+        if(alunosDto.isEmpty()) {
+            return new ResponseEntity<>(alunosResponse, HttpStatus.NO_CONTENT);
+        }
+
+        return new ResponseEntity<>(alunosResponse, HttpStatus.OK);
     } 
 
     @GetMapping(value = "/porta")
@@ -59,20 +74,25 @@ public class AlunoController {
 
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> excluirAluno(@PathVariable String id) {
-        servico.excluirAlunoPorId(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        Optional<AlunoDto> aluno = servico.obterAlunoPorId(id);
+
+        if (aluno.isPresent()) {
+            servico.excluirAlunoPorId(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<AlunoDto> atualizarAluno(@PathVariable String id, @RequestBody @Valid AlunoDto AlunoDto) {
-        AlunoDto dto = new ModelMapper().map(AlunoDto, AlunoDto.class);
-        Optional<AlunoDto> pess = servico.atualizarAlunoPorId(id, dto);
+    public ResponseEntity<AlunoDto> atualizarAluno(@PathVariable String id, @RequestBody @Valid AlunoDto alunoDto) {                        
+        Optional<AlunoDto> alunoDtoOptional = servico.atualizarAlunoPorId(id, alunoDto);
 
-        if (pess.isPresent()) {
-            return new ResponseEntity<>(pess.get(), HttpStatus.OK);
+        if (alunoDtoOptional.isPresent()) {                        
+            return new ResponseEntity<>(alunoDtoOptional.get(), HttpStatus.OK);
         }
         
-        return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);        
+        return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);           
     }
 
     /*
@@ -102,5 +122,17 @@ public class AlunoController {
         PessoaResponseComObservacao pessoaResponse = mapper.map(dto, PessoaResponseComObservacao.class);
         
         return new ResponseEntity<>(pessoaResponse, HttpStatus.CREATED); 
-    } */
+    }
+    
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<AlunoDto> atualizarAluno(@PathVariable String id, @RequestBody @Valid AlunoRequest alunoRequest) {                
+        AlunoDto alunoDto = new ModelMapper().map(alunoRequest, AlunoDto.class);
+        Optional<AlunoDto> alunoDtoOptional = servico.atualizarAlunoPorId(id, alunoDto);
+
+        if (alunoDtoOptional.isPresent()) {                        
+            return new ResponseEntity<>(alunoDtoOptional.get(), HttpStatus.OK);
+        }
+        
+        return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);           
+    }*/
 }

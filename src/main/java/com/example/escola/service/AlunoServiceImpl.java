@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.escola.model.Aluno;
@@ -14,8 +13,12 @@ import com.example.escola.shared.AlunoDto;
 
 @Service
 public class AlunoServiceImpl implements AlunoService {
-    @Autowired
-    AlunoRepository repositorio;
+    
+    private AlunoRepository repositorio;
+
+    public AlunoServiceImpl() {
+        this.repositorio = repositorio;
+    }
     
     @Override
     public List<AlunoDto> obterTodos() {
@@ -65,6 +68,7 @@ public class AlunoServiceImpl implements AlunoService {
             alunoParaSalvar = repositorio.save(alunoParaSalvar);
             return Optional.of(mapper.map(alunoParaSalvar, AlunoDto.class));
         }        
+        
         return Optional.empty();  
     }
     
