@@ -55,17 +55,17 @@ public class AlunoControllerTest {
 
         Mockito.when(this.servico.obterTodos()).thenReturn(alunos);
 
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/api/alunos"))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/api/alunos"))                    
                     .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
-    @DisplayName("Retorna o status No Content para a listagem de alunos sem conteúdo")
-    public void deve_retornar_status_204_para_listagem_de_alunos_vazia() throws Exception {        
+    @DisplayName("Retorna o status Ok para a listagem de alunos sem conteúdo")
+    public void deve_retornar_status_200_para_listagem_de_alunos_vazia() throws Exception {        
         Mockito.when(this.servico.obterTodos()).thenReturn(List.of());
 
         this.mockMvc.perform(MockMvcRequestBuilders.get("/api/alunos"))
-                    .andExpect(MockMvcResultMatchers.status().isNoContent());
+                    .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test

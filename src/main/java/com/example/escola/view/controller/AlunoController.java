@@ -45,7 +45,7 @@ public class AlunoController {
         .collect(Collectors.toList());
 
         if(alunosDto.isEmpty()) {
-            return new ResponseEntity<>(alunosResponse, HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(alunosResponse, HttpStatus.OK);
         }
 
         return new ResponseEntity<>(alunosResponse, HttpStatus.OK);
